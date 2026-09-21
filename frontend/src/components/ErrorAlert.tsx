@@ -7,31 +7,22 @@ interface ErrorAlertProps {
 
 export function ErrorAlert({ message, onDismiss }: ErrorAlertProps) {
   return (
-    <div
-      className="flex items-start gap-3.5 p-4 rounded-xl border animate-slide-up shadow-md"
-      style={{
-        background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(37, 60, 109, 0.8) 100%)',
-        borderColor: 'rgba(239, 68, 68, 0.5)',
-        color: '#fca5a5',
-      }}
-      id="error-alert"
-      role="alert"
-    >
-      <div className="p-1 rounded-lg bg-[rgba(239,68,68,0.2)] text-[#ef4444] flex-shrink-0 mt-0.5">
-        <AlertCircle className="w-4 h-4" />
-      </div>
-
-      <div className="flex-1 text-xs sm:text-sm font-medium leading-relaxed">
-        {message}
-      </div>
-
+    <div style={{
+      display: 'flex', alignItems: 'flex-start', gap: 8,
+      padding: '10px 14px',
+      border: '1px solid color-mix(in srgb, var(--danger) 30%, transparent)',
+      borderRadius: 6,
+      background: 'color-mix(in srgb, var(--danger) 6%, transparent)',
+      fontSize: 11, color: 'var(--danger)',
+    }}>
+      <AlertCircle className="w-3.5 h-3.5" style={{ flexShrink: 0, marginTop: 1 }} />
+      <span style={{ flex: 1, lineHeight: 1.5 }}>{message}</span>
       {onDismiss && (
         <button
           onClick={onDismiss}
-          className="p-1 rounded-lg text-[#9cb1d4] hover:text-white hover:bg-[rgba(239,68,68,0.2)] transition-colors cursor-pointer"
-          title="Dismiss notification"
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)', opacity: 0.7, padding: 0 }}
         >
-          <X className="w-4 h-4" />
+          <X className="w-3.5 h-3.5" />
         </button>
       )}
     </div>

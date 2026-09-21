@@ -1,181 +1,62 @@
-import {
-  Check,
-  CheckCircle2,
-  Lock,
-  Loader2,
-  AlertTriangle,
-  Cpu,
-  Activity,
-  Layers,
-  Info,
-} from 'lucide-react'
+import { Check, CheckCircle2, Lock, Loader2, AlertTriangle, Cpu, Activity, Layers, Info } from 'lucide-react'
 import type { ModelCard } from '../api/client'
 
-interface ModelCardComponentProps {
-  model: ModelCard
-  selected: boolean
-  onToggle: (id: string) => void
-}
+interface Props { model: ModelCard; selected: boolean; onToggle: (id: string) => void }
 
-interface StatusConfig {
-  label: string
-  color: string
-  bg: string
-  border: string
-  icon: React.ReactNode
-}
-
-function getStatusConfig(availability: ModelCard['availability']): StatusConfig {
-  switch (availability) {
-    case 'ready':
-      return {
-        label: 'Ready',
-        color: '#22c55e',
-        bg: 'rgba(34, 197, 94, 0.12)',
-        border: 'rgba(34, 197, 94, 0.3)',
-        icon: <CheckCircle2 className="w-3.5 h-3.5" />,
-      }
-    case 'available':
-      return {
-        label: 'Available',
-        color: '#22c55e',
-        bg: 'rgba(34, 197, 94, 0.12)',
-        border: 'rgba(34, 197, 94, 0.3)',
-        icon: <CheckCircle2 className="w-3.5 h-3.5" />,
-      }
-    case 'loading':
-      return {
-        label: 'Loading',
-        color: '#F2842F',
-        bg: 'rgba(242, 132, 47, 0.12)',
-        border: 'rgba(242, 132, 47, 0.3)',
-        icon: <Loader2 className="w-3.5 h-3.5 animate-spin" />,
-      }
-    case 'blocked':
-      return {
-        label: 'Blocked',
-        color: '#f43f5e',
-        bg: 'rgba(244, 63, 94, 0.12)',
-        border: 'rgba(244, 63, 94, 0.3)',
-        icon: <Lock className="w-3.5 h-3.5" />,
-      }
-    case 'error':
-    case 'missing':
-    default:
-      return {
-        label: 'Error',
-        color: '#ef4444',
-        bg: 'rgba(239, 68, 68, 0.12)',
-        border: 'rgba(239, 68, 68, 0.3)',
-        icon: <AlertTriangle className="w-3.5 h-3.5" />,
-      }
+function getStatus(av: ModelCard['availability']) {
+  switch (av) {
+    case 'ready': case 'available': return { label: 'Ready',   cls: 'badge-ok',   icon: <CheckCircle2 className="w-3 h-3" /> }
+    case 'loading':                  return { label: 'Loading', cls: 'badge-warn',  icon: <Loader2 className="w-3 h-3 spin" /> }
+    case 'blocked':                  return { label: 'Blocked', cls: 'badge-err',   icon: <Lock className="w-3 h-3" /> }
+    default:                         return { label: 'Error',   cls: 'badge-err',   icon: <AlertTriangle className="w-3 h-3" /> }
   }
 }
 
-export function ModelCardComponent({ model, selected, onToggle }: ModelCardComponentProps) {
-  const isSelectable = model.availability === 'available' || model.availability === 'ready'
-  const status = getStatusConfig(model.availability)
+export function ModelCardComponent({ model, selected, onToggle }: Props) {
+  const selectable = model.availability === 'available' || model.availability === 'ready'
+  const status = getStatus(model.availability)
 
   return (
     <div
-      onClick={() => isSelectable && onToggle(model.id)}
-      className={`relative rounded-xl border p-4 transition-all duration-200 select-none flex flex-col justify-between ${
-        isSelectable
-          ? 'cursor-pointer hover:border-[rgba(242,132,47,0.5)] hover:-translate-y-0.5'
-          : 'cursor-not-allowed opacity-75'
-      }`}
-      style={{
-        background: selected
-          ? 'linear-gradient(135deg, rgba(37, 60, 109, 0.9) 0%, rgba(48, 73, 125, 0.75) 100%)'
-          : isSelectable
-          ? 'rgba(30, 48, 82, 0.65)'
-          : 'rgba(22, 33, 56, 0.5)',
-        borderColor: selected
-          ? '#F2842F'
-          : isSelectable
-          ? '#455B8A'
-          : 'rgba(69, 91, 138, 0.3)',
-        boxShadow: selected
-          ? '0 0 16px -2px rgba(242, 132, 47, 0.25), inset 0 0 0 1px #F2842F'
-          : '0 4px 12px rgba(0, 0, 0, 0.2)',
-      }}
+      className={`model-tile${selected ? ' selected' : ''}${!selectable ? ' blocked' : ''}`}
+      onClick={() => selectable && onToggle(model.id)}
       id={`model-card-${model.id}`}
     >
-      {/* Card Header: Checkbox / Status Pill */}
-      <div>
-        <div className="flex items-start justify-between gap-3 mb-2.5">
-          <div className="flex items-center gap-2.5">
-            {/* Custom Checkbox */}
-            <div
-              className={`w-5 h-5 rounded-md flex items-center justify-center transition-colors flex-shrink-0 ${
-                !isSelectable
-                  ? 'bg-[rgba(69,91,138,0.2)] border border-[rgba(69,91,138,0.4)] text-transparent'
-                  : selected
-                  ? 'bg-[#F2842F] text-white shadow-sm'
-                  : 'bg-[rgba(30,48,82,0.8)] border border-[#455B8A] text-transparent hover:border-[#F2842F]'
-              }`}
-            >
-              {selected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
-            </div>
-
-            <div>
-              <h3 className="text-sm font-bold text-white tracking-wide">{model.name}</h3>
-            </div>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 6 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+          <div style={{
+            width: 15, height: 15, borderRadius: 3, flexShrink: 0,
+            border: `1px solid ${selected ? 'var(--ink)' : 'var(--border-hi)'}`,
+            background: selected ? 'var(--ink)' : 'transparent',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            transition: 'all 0.12s',
+          }}>
+            {selected && <Check className="w-2.5 h-2.5" style={{ color: 'var(--bg)', strokeWidth: 3 }} />}
           </div>
-
-          {/* Status Badge */}
-          <span
-            className="flex items-center gap-1.5 text-[11px] font-semibold px-2 py-0.5 rounded-full border flex-shrink-0"
-            style={{
-              color: status.color,
-              background: status.bg,
-              borderColor: status.border,
-            }}
-          >
-            {status.icon}
-            <span>{status.label}</span>
-          </span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)' }}>{model.name}</span>
         </div>
-
-        {/* Model Description */}
-        <p className="text-xs text-[#9cb1d4] leading-relaxed mb-3">
-          {model.description}
-        </p>
+        <span className={`badge ${status.cls}`} style={{ flexShrink: 0 }}>{status.icon} {status.label}</span>
       </div>
 
-      {/* Model Specs & Blocked Reason Footer */}
-      <div className="pt-2.5 border-t border-[rgba(69,91,138,0.3)] mt-auto">
-        <div className="flex flex-wrap items-center gap-2 text-[10px] text-[#9cb1d4]">
-          {model.params && (
-            <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-[rgba(48,73,125,0.6)] border border-[#455B8A]">
-              <Cpu className="w-3 h-3 text-[#F2842F]" />
-              {model.params}
-            </span>
-          )}
-          {model.sample_rate && (
-            <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-[rgba(48,73,125,0.6)] border border-[#455B8A]">
-              <Activity className="w-3 h-3 text-[#9cb1d4]" />
-              {(model.sample_rate / 1000).toFixed(1)} kHz
-            </span>
-          )}
-          {model.checkpoint_size_mb && (
-            <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-[rgba(48,73,125,0.6)] border border-[#455B8A]">
-              <Layers className="w-3 h-3 text-[#9cb1d4]" />
-              {model.checkpoint_size_mb} MB
-            </span>
-          )}
-        </div>
+      <p style={{ fontSize: 11, color: 'var(--ink-3)', lineHeight: 1.5 }}>{model.description}</p>
 
-        {/* Honest Blocked / Availability Reason Notice */}
-        {!isSelectable && model.availability_reason && (
-          <div className="mt-2 text-[11px] text-[#f43f5e] bg-[rgba(244,63,94,0.08)] border border-[rgba(244,63,94,0.2)] rounded-md px-2.5 py-1.5 flex items-start gap-1.5">
-            <Info className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-            <span className="leading-snug">
-              {model.availability_reason}
-            </span>
-          </div>
-        )}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 'auto' }}>
+        {model.params && <span className="badge badge-muted mono" style={{ display: 'flex', alignItems: 'center', gap: 3 }}><Cpu className="w-2.5 h-2.5" /> {model.params}</span>}
+        {model.sample_rate && <span className="badge badge-muted mono" style={{ display: 'flex', alignItems: 'center', gap: 3 }}><Activity className="w-2.5 h-2.5" /> {(model.sample_rate/1000).toFixed(1)}kHz</span>}
+        {model.checkpoint_size_mb && <span className="badge badge-muted mono" style={{ display: 'flex', alignItems: 'center', gap: 3 }}><Layers className="w-2.5 h-2.5" /> {model.checkpoint_size_mb}MB</span>}
       </div>
+
+      {!selectable && model.availability_reason && (
+        <div style={{
+          fontSize: 10, color: 'var(--danger)', lineHeight: 1.4,
+          padding: '5px 7px', borderRadius: 3,
+          border: '1px solid color-mix(in srgb, var(--danger) 25%, transparent)',
+          background: 'color-mix(in srgb, var(--danger) 5%, transparent)',
+          display: 'flex', alignItems: 'flex-start', gap: 4,
+        }}>
+          <Info className="w-3 h-3" style={{ flexShrink: 0, marginTop: 1 }} /> {model.availability_reason}
+        </div>
+      )}
     </div>
   )
 }
